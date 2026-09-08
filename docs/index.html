@@ -1,0 +1,1687 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>韓国式 名前相性診断</title>
+<meta name="description" content="韓国で定番の「이름궁합（名前の画数占い）」を日本語で。ハングルの画数から相性度を計算します。">
+<style>
+/* ===================================================================
+   韓国式 名前相性診断 — stylesheet
+   =================================================================== */
+
+:root {
+  --bg:           #fff5f7;
+  --bg-accent:    #ffe9ef;
+  --card:         #ffffff;
+  --ink:          #2f2a33;
+  --ink-soft:     #6d6675;
+  --ink-faint:    #9a93a3;
+  --line:         #f0e4e9;
+  --pink:         #ff5c8a;
+  --pink-deep:    #e63f6f;
+  --pink-soft:    #ffe1ea;
+  --gold:         #f2b333;
+  --radius:       20px;
+  --shadow:       0 6px 24px rgba(214, 120, 149, 0.13);
+}
+
+* { box-sizing: border-box; }
+
+html, body { margin: 0; padding: 0; }
+
+body {
+  background:
+    radial-gradient(1200px 400px at 50% -80px, var(--bg-accent), transparent),
+    var(--bg);
+  color: var(--ink);
+  font-family: "Hiragino Kaku Gothic ProN", "Hiragino Sans", "Yu Gothic",
+               "Noto Sans JP", "Apple SD Gothic Neo", "Malgun Gothic",
+               system-ui, sans-serif;
+  line-height: 1.7;
+  -webkit-text-size-adjust: 100%;
+}
+
+.wrap {
+  max-width: 520px;
+  margin: 0 auto;
+  padding: 28px 16px 56px;
+}
+
+/* ------------------------------------------------------------- hero */
+.hero { text-align: center; margin-bottom: 24px; }
+
+.hero__kicker {
+  display: inline-block;
+  margin: 0 0 10px;
+  padding: 4px 14px;
+  border-radius: 999px;
+  background: var(--pink-soft);
+  color: var(--pink-deep);
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: .04em;
+}
+
+.hero__title {
+  margin: 0 0 12px;
+  font-size: 34px;
+  line-height: 1.25;
+  letter-spacing: .02em;
+}
+
+.hero__sub {
+  margin: 0;
+  font-size: 13px;
+  color: var(--ink-soft);
+}
+
+/* ------------------------------------------------------------- card */
+.card {
+  background: var(--card);
+  border-radius: var(--radius);
+  box-shadow: var(--shadow);
+  padding: 22px 20px;
+  margin-bottom: 18px;
+}
+
+.card__head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+}
+
+.card__actions {
+  display: flex;
+  gap: 6px;
+  flex: none;
+}
+
+.card__title {
+  margin: 0 0 4px;
+  font-size: 17px;
+  letter-spacing: .03em;
+}
+
+.card__desc {
+  margin: 0 0 14px;
+  font-size: 12px;
+  color: var(--ink-faint);
+}
+
+/* ------------------------------------------------------------- pair */
+.pair {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  margin-bottom: 20px;
+  font-size: 14px;
+  font-weight: 700;
+}
+.pair__me   { color: var(--pink-deep); }
+.pair__x    { color: var(--ink-faint); font-size: 12px; }
+.pair__you  { color: var(--ink-soft); }
+
+/* ------------------------------------------------------------- form */
+.label {
+  display: block;
+  margin-bottom: 8px;
+  font-size: 13px;
+  font-weight: 700;
+}
+.label--sm { font-size: 12px; font-weight: 600; color: var(--ink-soft); }
+
+.label__req {
+  margin-left: 6px;
+  padding: 2px 8px;
+  border-radius: 999px;
+  background: var(--pink-soft);
+  color: var(--pink-deep);
+  font-size: 11px;
+  vertical-align: 1px;
+}
+
+.input {
+  width: 100%;
+  padding: 14px 16px;
+  border: 2px solid var(--line);
+  border-radius: 14px;
+  background: #fffafc;
+  color: var(--ink);
+  font-size: 20px;
+  font-family: inherit;
+  text-align: center;
+  transition: border-color .15s, box-shadow .15s;
+}
+.input:focus {
+  outline: none;
+  border-color: var(--pink);
+  box-shadow: 0 0 0 4px rgba(255, 92, 138, .12);
+}
+.input::placeholder { color: #d9cfd6; }
+.input--sm { font-size: 15px; padding: 10px 12px; }
+
+/* ------------------------------------------------------------- helper */
+.helper {
+  margin: 12px 0 4px;
+  border: 1px dashed var(--line);
+  border-radius: 14px;
+  background: #fffafc;
+}
+.helper > summary {
+  padding: 10px 14px;
+  font-size: 12px;
+  color: var(--pink-deep);
+  cursor: pointer;
+  list-style: none;
+}
+.helper > summary::-webkit-details-marker { display: none; }
+.helper > summary::before { content: "＋ "; font-weight: 700; }
+.helper[open] > summary::before { content: "− "; }
+
+.helper__body { padding: 0 14px 14px; }
+
+.helper__preview {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-top: 10px;
+}
+.helper__out {
+  flex: 1;
+  padding: 8px 12px;
+  border-radius: 10px;
+  background: var(--pink-soft);
+  color: var(--pink-deep);
+  font-size: 18px;
+  font-weight: 700;
+  text-align: center;
+  min-height: 38px;
+}
+.helper__note {
+  margin: 10px 0 0;
+  font-size: 11px;
+  line-height: 1.6;
+  color: var(--ink-faint);
+}
+
+/* ------------------------------------------------------------- button */
+.btn {
+  border: none;
+  border-radius: 14px;
+  font-family: inherit;
+  font-weight: 700;
+  cursor: pointer;
+  transition: transform .12s, box-shadow .15s, opacity .15s;
+}
+.btn:active { transform: translateY(1px) scale(.995); }
+.btn:disabled { opacity: .45; cursor: not-allowed; }
+
+.btn--primary {
+  display: block;
+  width: 100%;
+  margin-top: 14px;
+  padding: 16px;
+  background: linear-gradient(135deg, var(--pink), var(--pink-deep));
+  color: #fff;
+  font-size: 16px;
+  letter-spacing: .06em;
+  box-shadow: 0 8px 18px rgba(230, 63, 111, .28);
+}
+.btn--primary:hover:not(:disabled) { box-shadow: 0 10px 22px rgba(230, 63, 111, .36); }
+
+.btn--ghost {
+  background: #fff;
+  border: 1.5px solid var(--line);
+  color: var(--ink-soft);
+  padding: 8px 14px;
+}
+.btn--sm { font-size: 12px; }
+
+.btn--cookie {
+  display: block;
+  width: 100%;
+  padding: 15px;
+  background: linear-gradient(135deg, #ffd479, var(--gold));
+  color: #6b4302;
+  font-size: 15px;
+  letter-spacing: .06em;
+  box-shadow: 0 8px 18px rgba(242, 179, 51, .3);
+}
+
+.btn--danger {
+  background: #fff;
+  border: 1.5px solid #f0b9b9;
+  color: #c02b2b;
+  padding: 9px 14px;
+}
+.btn--danger:hover:not(:disabled) { background: #fff5f5; border-color: #e08a8a; }
+
+.btn--block { display: block; width: 100%; margin-top: 8px; }
+
+/* ------------------------------------------------------------- danger zone */
+.danger {
+  margin: 0 0 16px;
+  padding: 14px;
+  border: 1px solid #f4dede;
+  border-radius: 14px;
+  background: #fffafa;
+  animation: pop .2s ease;
+}
+.danger__row {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+}
+.danger__row .input { flex: 1; text-align: left; }
+.danger__row .btn { flex: none; white-space: nowrap; }
+.danger__note {
+  margin: 10px 0 0;
+  font-size: 11px;
+  color: #b08a8a;
+}
+.danger__msg {
+  margin: 10px 0 0;
+  padding: 8px 12px;
+  border-radius: 10px;
+  background: #fff;
+  border: 1px solid var(--line);
+  font-size: 12px;
+  text-align: center;
+}
+.danger__msg--ok { color: #2f7d4f; border-color: #cbe6d5; background: #f4fbf7; }
+.danger__msg--err { color: #c02b2b; border-color: #f0c9c9; background: #fff5f5; }
+
+/* ------------------------------------------------------------- error */
+.error {
+  margin: 12px 0 0;
+  padding: 10px 14px;
+  border-radius: 12px;
+  background: #fff0f0;
+  color: #c02b2b;
+  font-size: 13px;
+  text-align: center;
+}
+
+/* ------------------------------------------------------------- result */
+.card--result { text-align: center; animation: pop .35s ease; }
+
+@keyframes pop {
+  from { opacity: 0; transform: translateY(10px) scale(.98); }
+  to   { opacity: 1; transform: none; }
+}
+
+.result__pair {
+  margin: 0 0 6px;
+  font-size: 15px;
+  font-weight: 700;
+  color: var(--ink-soft);
+}
+
+.gauge {
+  position: relative;
+  width: 190px;
+  height: 190px;
+  margin: 8px auto 6px;
+}
+.gauge__svg { width: 100%; height: 100%; transform: rotate(-90deg); }
+.gauge__track, .gauge__bar {
+  fill: none;
+  stroke-width: 9;
+  stroke-linecap: round;
+}
+.gauge__track { stroke: var(--pink-soft); }
+.gauge__bar {
+  stroke: var(--pink);
+  stroke-dasharray: 326.7;              /* 2πr, r=52 */
+  stroke-dashoffset: 326.7;
+  transition: stroke-dashoffset 1.1s cubic-bezier(.2, .8, .2, 1);
+}
+.gauge__inner {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+}
+.gauge__num {
+  font-size: 52px;
+  font-weight: 800;
+  line-height: 1;
+  color: var(--pink-deep);
+  font-variant-numeric: tabular-nums;
+}
+.gauge__pct {
+  font-size: 18px;
+  font-weight: 800;
+  color: var(--pink-deep);
+  margin-top: -4px;
+}
+.gauge__cap {
+  margin-top: 6px;
+  font-size: 11px;
+  letter-spacing: .16em;
+  color: var(--ink-faint);
+}
+
+.result__grade {
+  margin: 4px 0 2px;
+  font-size: 20px;
+  font-weight: 800;
+  color: var(--gold);
+  letter-spacing: .08em;
+}
+.result__comment {
+  margin: 0 0 16px;
+  font-size: 13px;
+  color: var(--ink-soft);
+}
+
+/* ------------------------------------------------------------- mechanism */
+.mech {
+  text-align: left;
+  border-top: 1px solid var(--line);
+  padding-top: 12px;
+}
+.mech > summary {
+  font-size: 13px;
+  font-weight: 700;
+  color: var(--pink-deep);
+  cursor: pointer;
+  text-align: center;
+  list-style: none;
+}
+.mech > summary::-webkit-details-marker { display: none; }
+.mech > summary::after { content: " ▾"; }
+.mech[open] > summary::after { content: " ▴"; }
+
+.mech__body { padding-top: 10px; }
+.mech__step { margin-bottom: 20px; }
+.mech__h {
+  margin: 0 0 8px;
+  font-size: 13px;
+  color: var(--ink);
+}
+.mech__note {
+  margin: 8px 0 0;
+  font-size: 11px;
+  color: var(--ink-faint);
+}
+.mech__final {
+  margin: 0;
+  padding: 12px;
+  border-radius: 12px;
+  background: var(--pink-soft);
+  color: var(--pink-deep);
+  font-size: 14px;
+  font-weight: 700;
+  text-align: center;
+}
+
+/* 자모 분해 표시 */
+.jamo-grid { display: flex; flex-direction: column; gap: 10px; }
+
+.jamo-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+.jamo-row__who {
+  min-width: 74px;
+  font-size: 11px;
+  font-weight: 700;
+  color: var(--ink-faint);
+}
+.jamo-syl {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  padding: 5px 8px;
+  border: 1px solid var(--line);
+  border-radius: 10px;
+  background: #fffafc;
+}
+.jamo-syl__char {
+  font-size: 16px;
+  font-weight: 800;
+  color: var(--pink-deep);
+  margin-right: 2px;
+}
+.jamo-syl__eq { color: var(--ink-faint); font-size: 11px; }
+.jamo-chip {
+  font-size: 12px;
+  color: var(--ink-soft);
+  white-space: nowrap;
+}
+.jamo-chip b { color: var(--ink); }
+.jamo-syl__sum {
+  margin-left: 4px;
+  padding: 1px 7px;
+  border-radius: 999px;
+  background: var(--pink-soft);
+  color: var(--pink-deep);
+  font-size: 11px;
+  font-weight: 800;
+}
+
+/* 획수 라인 */
+.stroke-lines { display: flex; flex-direction: column; gap: 8px; }
+.stroke-line {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 13px;
+}
+.stroke-line__who {
+  min-width: 74px;
+  font-size: 11px;
+  font-weight: 700;
+  color: var(--ink-faint);
+}
+
+/* 숫자 칩 */
+.numrow { display: flex; gap: 6px; flex-wrap: wrap; }
+.num {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 30px;
+  height: 30px;
+  border-radius: 9px;
+  background: #fffafc;
+  border: 1.5px solid var(--line);
+  font-size: 14px;
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+}
+.num--me   { border-color: #ffc2d4; background: #fff2f6; color: var(--pink-deep); }
+.num--you  { border-color: #cfe3f7; background: #f3f8fd; color: #2d6ea8; }
+.num--last { border-color: var(--gold); background: #fff8e8; color: #a8730a; }
+
+/* 피라미드 */
+.pyramid { display: flex; flex-direction: column; gap: 6px; align-items: center; }
+.pyramid .numrow { justify-content: center; }
+
+/* ------------------------------------------------------------- ranking */
+.rank { list-style: none; margin: 0; padding: 0; }
+
+.rank__empty {
+  padding: 18px;
+  text-align: center;
+  font-size: 13px;
+  color: var(--ink-faint);
+}
+
+.rank__item {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 11px 4px;
+  border-bottom: 1px solid var(--line);
+}
+.rank__item:last-child { border-bottom: none; }
+
+.rank__no {
+  flex: none;
+  width: 30px;
+  text-align: center;
+  font-size: 13px;
+  font-weight: 800;
+  color: var(--ink-faint);
+}
+.rank__item--top1 .rank__no,
+.rank__item--top2 .rank__no,
+.rank__item--top3 .rank__no { font-size: 18px; }
+
+.rank__name { flex: 1; font-size: 15px; font-weight: 700; }
+.rank__grade { font-size: 11px; color: var(--ink-faint); }
+.rank__score {
+  flex: none;
+  font-size: 17px;
+  font-weight: 800;
+  color: var(--pink-deep);
+  font-variant-numeric: tabular-nums;
+}
+
+/* ------------------------------------------------------------- cookie */
+.card--cookie { text-align: center; }
+.cookie {
+  margin-bottom: 14px;
+  padding: 18px 16px;
+  border-radius: 16px;
+  background: linear-gradient(135deg, #fffaef, #fff3d9);
+  border: 1px solid #f6e2b4;
+  animation: pop .3s ease;
+}
+.cookie__msg {
+  margin: 0;
+  font-size: 15px;
+  font-weight: 700;
+  color: #6b4302;
+}
+.cookie__meta {
+  margin: 8px 0 0;
+  font-size: 11px;
+  color: #a3813a;
+}
+
+/* ------------------------------------------------------------- foot */
+.foot {
+  text-align: center;
+  font-size: 11px;
+  color: var(--ink-faint);
+  line-height: 1.9;
+}
+.foot p { margin: 0; }
+.foot__tech { letter-spacing: .06em; opacity: .7; }
+
+/* ------------------------------------------------------------- loading */
+.is-loading { position: relative; color: transparent !important; }
+.is-loading::after {
+  content: "";
+  position: absolute;
+  top: 50%; left: 50%;
+  width: 18px; height: 18px;
+  margin: -9px 0 0 -9px;
+  border: 2.5px solid rgba(255, 255, 255, .45);
+  border-top-color: #fff;
+  border-radius: 50%;
+  animation: spin .7s linear infinite;
+}
+@keyframes spin { to { transform: rotate(360deg); } }
+
+@media (max-width: 380px) {
+  .hero__title { font-size: 28px; }
+  .gauge { width: 165px; height: 165px; }
+  .gauge__num { font-size: 44px; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  * { animation: none !important; transition: none !important; }
+}
+
+</style>
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>💗</text></svg>">
+<meta property="og:type" content="website">
+<meta property="og:title" content="韓国式 名前相性診断">
+<meta property="og:description" content="ハングルの画数だけで相性を占います。カタカナからの変換つき。">
+<meta name="twitter:card" content="summary">
+</head>
+<body>
+
+<div class="wrap">
+
+  <header class="hero">
+    <p class="hero__kicker">韓国の定番あそび「이름궁합」</p>
+    <h1 class="hero__title">韓国式<br>名前相性診断</h1>
+    <p class="hero__sub">ハングルの<b>画数</b>だけで相性を占います。<br>当たっても外れても、笑って許してください。</p>
+  </header>
+
+  <!-- ============================ 診断カード ============================ -->
+  <section class="card">
+    <div class="pair">
+      <span class="pair__me" id="ownerLabel">シム・ヒョジン</span>
+      <span class="pair__x">×</span>
+      <span class="pair__you">チームメンバー</span>
+    </div>
+
+    <form id="diagForm" novalidate>
+      <label class="label" for="partnerName">
+        チームメンバーのお名前 <span class="label__req">ハングル</span>
+      </label>
+      <input id="partnerName" class="input" type="text" inputmode="text"
+             placeholder="야마다" autocomplete="off" maxlength="8">
+
+      <details class="helper">
+        <summary>ハングルが打てない方はこちら（カタカナ変換）</summary>
+        <div class="helper__body">
+          <label class="label label--sm" for="kanaInput">カタカナ / ひらがな で入力</label>
+          <input id="kanaInput" class="input input--sm" type="text"
+                 placeholder="やまだ / ヤマダ" autocomplete="off">
+          <div class="helper__preview">
+            <span>→</span>
+            <output id="kanaResult" class="helper__out">—</output>
+            <button type="button" id="kanaApply" class="btn btn--ghost btn--sm" disabled>これを使う</button>
+          </div>
+          <p class="helper__note">
+            韓国の外来語表記ルールに近い形で変換します（長音「ー」は省略、「ん」は ㄴ、「っ」は ㅅ）。
+            気になるときは直接ハングルを書き換えてください。
+          </p>
+        </div>
+      </details>
+
+      <p class="error" id="errorBox" hidden></p>
+      <button type="submit" class="btn btn--primary" id="submitBtn">相性を診断する</button>
+    </form>
+  </section>
+
+  <!-- ============================ 結果カード ============================ -->
+  <section class="card card--result" id="resultCard" hidden>
+    <h2 class="card__title">診断結果</h2>
+    <p class="result__pair"><span id="resOwner">심효진</span> × <span id="resPartner">—</span></p>
+
+    <div class="gauge">
+      <svg viewBox="0 0 120 120" class="gauge__svg" aria-hidden="true">
+        <circle class="gauge__track" cx="60" cy="60" r="52"></circle>
+        <circle class="gauge__bar" cx="60" cy="60" r="52" id="gaugeBar"></circle>
+      </svg>
+      <div class="gauge__inner">
+        <span class="gauge__num" id="scoreNum">0</span><span class="gauge__pct">%</span>
+        <span class="gauge__cap">相性度</span>
+      </div>
+    </div>
+
+    <p class="result__grade" id="resGrade">—</p>
+    <p class="result__comment" id="resComment">—</p>
+
+    <details class="mech" id="mechBox">
+      <summary>どんな仕組み？</summary>
+      <div class="mech__body">
+
+        <div class="mech__step">
+          <h3 class="mech__h">① ハングルを子音・母音に分解</h3>
+          <div id="stepDecompose" class="jamo-grid"></div>
+        </div>
+
+        <div class="mech__step">
+          <h3 class="mech__h">② それぞれの画数を計算</h3>
+          <div id="stepStrokes" class="stroke-lines"></div>
+        </div>
+
+        <div class="mech__step">
+          <h3 class="mech__h">③ 数字を交互に組み合わせる</h3>
+          <div id="stepMerged" class="numrow"></div>
+          <p class="mech__note">「심효진」の画数と相手の画数を交互に並べます。</p>
+        </div>
+
+        <div class="mech__step">
+          <h3 class="mech__h">④ 隣り合う数字を足して1の位を残す</h3>
+          <div id="stepReduce" class="pyramid"></div>
+          <p class="mech__note">残りが2つになるまで繰り返します。</p>
+        </div>
+
+        <div class="mech__step">
+          <h3 class="mech__h">⑤ 最後に残った2つの数字が相性度</h3>
+          <p class="mech__final" id="stepFinal">—</p>
+        </div>
+
+      </div>
+    </details>
+  </section>
+
+  <!-- ============================ ランキング ============================ -->
+  <section class="card">
+    <div class="card__head">
+      <h2 class="card__title">名前相性ランキング</h2>
+      <div class="card__actions">
+        <button type="button" class="btn btn--ghost btn--sm" id="reloadRanking">更新</button>
+        <button type="button" class="btn btn--ghost btn--sm" id="toggleDelete">削除</button>
+      </div>
+    </div>
+    <p class="card__desc" id="rankStats">シム・ヒョジンとの相性が高い順に表示されます。</p>
+
+    <div class="danger" id="deletePanel" hidden>
+      <label class="label label--sm" for="deleteName">削除するお名前（ハングル）</label>
+      <div class="danger__row">
+        <input id="deleteName" class="input input--sm" type="text"
+               placeholder="야마다" autocomplete="off" maxlength="8">
+        <button type="button" class="btn btn--danger btn--sm" id="deleteOne">この名前を削除</button>
+      </div>
+      <button type="button" class="btn btn--danger btn--block" id="deleteAll">
+        ランキングを全部削除
+      </button>
+      <p class="danger__note">削除したデータは元に戻せません。</p>
+      <p class="danger__msg" id="deleteMsg" hidden></p>
+    </div>
+
+    <ol class="rank" id="rankList">
+      <li class="rank__empty">まだ誰も診断していません。</li>
+    </ol>
+  </section>
+
+  <!-- ============================ フォーチュンクッキー ============================ -->
+  <section class="card card--cookie">
+    <h2 class="card__title">フォーチュンクッキー</h2>
+    <p class="card__desc">相性とは関係なく、今日のひとことを引けます。</p>
+    <div class="cookie" id="cookieBox" hidden>
+      <p class="cookie__msg" id="cookieMsg">—</p>
+      <p class="cookie__meta" id="cookieMeta"></p>
+    </div>
+    <button type="button" class="btn btn--cookie" id="cookieBtn">🥠 クッキーを開ける</button>
+  </section>
+
+  <footer class="foot">
+    <p class="foot__tech">Flask · MySQL(RDS) · Nginx · Docker · EC2 · Datadog</p>
+    <p class="foot__tech" style="margin-top:6px">このページはブラウザだけで動く簡易版です（記録はこの端末に保存されます）</p>
+  </footer>
+
+</div>
+
+<script>
+/* ===================================================================
+   GitHub Pages 정적판용 API — 서버 없이 브라우저에서 전부 처리
+   -------------------------------------------------------------------
+   * 획수표와 궁합 알고리즘은 backend/hangul.py · compatibility.py 와 동일.
+     따라서 EC2 버전과 항상 같은 점수가 나온다.
+   * 랭킹은 localStorage 에 저장 → 새로고침·재방문해도 남는다.
+     단 "그 브라우저에만" 남는다 (사람마다 각자의 랭킹).
+   * 포춘쿠키는 로컬 메시지 목록에서 뽑는다 (외부 API는 CORS로 막히므로).
+   =================================================================== */
+(function () {
+  'use strict';
+
+  var STORAGE_KEY = 'namecompat.ranking.v1';
+
+  var CHOSUNG = ['ㄱ','ㄲ','ㄴ','ㄷ','ㄸ','ㄹ','ㅁ','ㅂ','ㅃ','ㅅ','ㅆ','ㅇ','ㅈ','ㅉ','ㅊ','ㅋ','ㅌ','ㅍ','ㅎ'];
+  var JUNGSUNG = ['ㅏ','ㅐ','ㅑ','ㅒ','ㅓ','ㅔ','ㅕ','ㅖ','ㅗ','ㅘ','ㅙ','ㅚ','ㅛ','ㅜ','ㅝ','ㅞ','ㅟ','ㅠ','ㅡ','ㅢ','ㅣ'];
+  var JONGSUNG = ['','ㄱ','ㄲ','ㄳ','ㄴ','ㄵ','ㄶ','ㄷ','ㄹ','ㄺ','ㄻ','ㄼ','ㄽ','ㄾ','ㄿ','ㅀ','ㅁ','ㅂ','ㅄ','ㅅ','ㅆ','ㅇ','ㅈ','ㅊ','ㅋ','ㅌ','ㅍ','ㅎ'];
+
+  var STROKES = {
+    'ㄱ':2,'ㄴ':2,'ㄷ':3,'ㄹ':5,'ㅁ':4,'ㅂ':4,'ㅅ':2,'ㅇ':1,'ㅈ':3,'ㅊ':4,'ㅋ':3,'ㅌ':4,'ㅍ':4,'ㅎ':3,
+    'ㄲ':4,'ㄸ':6,'ㅃ':8,'ㅆ':4,'ㅉ':6,
+    'ㄳ':4,'ㄵ':5,'ㄶ':5,'ㄺ':7,'ㄻ':9,'ㄼ':9,'ㄽ':7,'ㄾ':9,'ㄿ':9,'ㅀ':8,'ㅄ':6,
+    'ㅏ':2,'ㅐ':3,'ㅑ':3,'ㅒ':4,'ㅓ':2,'ㅔ':3,'ㅕ':3,'ㅖ':4,'ㅗ':2,'ㅘ':4,'ㅙ':5,'ㅚ':3,'ㅛ':3,
+    'ㅜ':2,'ㅝ':4,'ㅞ':5,'ㅟ':3,'ㅠ':3,'ㅡ':1,'ㅢ':2,'ㅣ':1
+  };
+
+  var ROLE_LABEL = {
+    chosung: '初声(子音)', jungsung: '中声(母音)', jongsung: '終声(パッチム)'
+  };
+
+  var TIERS = [
+    [90, '運命級', 'これはもう運命。ランチは毎日一緒でいいレベルです。'],
+    [80, '大吉',   'かなりの好相性。仕事もプライベートも話が合いそう。'],
+    [70, '吉',     'いいバランス。安心して隣の席に座れる相性です。'],
+    [60, '中吉',   'そこそこ good。会話のきっかけがあれば一気に伸びます。'],
+    [50, '小吉',   '普通が一番。長く付き合えるタイプの相性です。'],
+    [40, '末吉',   '少し努力が必要。まずはコーヒーでも一杯どうぞ。'],
+    [20, 'がんばれ', '相性は数字だけじゃない…と韓国では言います。'],
+    [0,  'ドンマイ', '画数の神様は気分屋なので、明日もう一度どうぞ。']
+  ];
+
+  var FORTUNES = [
+    '今日は「ありがとう」を3回言うと運が回ってきます。',
+    '迷ったら、いつもと違う道で帰ってみましょう。',
+    '小さな親切が、大きなラッキーを連れてきます。',
+    '今日の幸運アイテムは温かい飲み物です。',
+    '返事を後回しにしているメッセージ、今送ると吉。',
+    '笑顔は最強のラッキーチャームです。',
+    '昼休みに5分だけ空を見上げてみてください。',
+    '今日は聞き役に回ると、いい情報が入ってきます。'
+  ];
+
+  var OWNER = '심효진';
+
+  // ---------------------------------------------------------- storage
+  // localStorage 는 시크릿 모드나 저장 용량 초과 시 예외를 던진다.
+  // 실패하면 메모리에만 담고 계속 동작한다.
+  var memoryStore = {};
+
+  function loadStore() {
+    try {
+      var raw = window.localStorage.getItem(STORAGE_KEY);
+      return raw ? JSON.parse(raw) : {};
+    } catch (e) {
+      return memoryStore;
+    }
+  }
+
+  function saveStore(store) {
+    memoryStore = store;
+    try {
+      window.localStorage.setItem(STORAGE_KEY, JSON.stringify(store));
+    } catch (e) {
+      /* 저장 실패는 무시 — 이번 세션 동안은 메모리로 동작 */
+    }
+  }
+
+  // ---------------------------------------------------------- algorithm
+  function isSyllable(ch) {
+    var c = ch.charCodeAt(0);
+    return c >= 0xAC00 && c <= 0xD7A3;
+  }
+
+  function decompose(name) {
+    return name.split('').map(function (ch) {
+      var code = ch.charCodeAt(0) - 0xAC00;
+      var cho = CHOSUNG[Math.floor(code / 588)];
+      var jung = JUNGSUNG[Math.floor((code % 588) / 28)];
+      var jongIdx = code % 28;
+      var jamos = [
+        { char: cho,  role: 'chosung',  role_label: ROLE_LABEL.chosung,  strokes: STROKES[cho] },
+        { char: jung, role: 'jungsung', role_label: ROLE_LABEL.jungsung, strokes: STROKES[jung] }
+      ];
+      if (jongIdx) {
+        var jong = JONGSUNG[jongIdx];
+        jamos.push({ char: jong, role: 'jongsung', role_label: ROLE_LABEL.jongsung, strokes: STROKES[jong] });
+      }
+      var total = jamos.reduce(function (sum, j) { return sum + j.strokes; }, 0);
+      return { char: ch, jamos: jamos, strokes: total };
+    });
+  }
+
+  function calculate(partner) {
+    var ownerSyl = decompose(OWNER);
+    var partnerSyl = decompose(partner);
+    var a = ownerSyl.map(function (s) { return s.strokes; });
+    var b = partnerSyl.map(function (s) { return s.strokes; });
+
+    var merged = [];
+    for (var i = 0; i < Math.max(a.length, b.length); i++) {
+      if (i < a.length) merged.push(a[i]);
+      if (i < b.length) merged.push(b[i]);
+    }
+
+    var rows = [merged.slice()];
+    var cur = merged.slice();
+    while (cur.length > 2) {
+      var next = [];
+      for (var k = 0; k < cur.length - 1; k++) next.push((cur[k] + cur[k + 1]) % 10);
+      rows.push(next);
+      cur = next;
+    }
+
+    var score = cur[0] * 10 + cur[1];
+    var tier = TIERS.find(function (t) { return score >= t[0]; });
+
+    return {
+      owner_name: OWNER,
+      partner_name: partner,
+      score: score,
+      grade: { label: tier[1], comment: tier[2] },
+      steps: {
+        step1_decompose: { owner: ownerSyl, partner: partnerSyl },
+        step2_strokes: { owner: a, partner: b },
+        step3_interleaved: merged,
+        step4_reduction: rows,
+        step5_score: score
+      },
+      saved: true
+    };
+  }
+
+  function ranking(limit) {
+    var store = loadStore();
+    var rows = Object.keys(store).map(function (name) {
+      return {
+        partner_name: name,
+        score: store[name].score,
+        grade_label: store[name].grade_label,
+        lookup_count: store[name].lookup_count,
+        created_at: store[name].created_at || null
+      };
+    }).sort(function (x, y) {
+      return y.score - x.score || x.partner_name.localeCompare(y.partner_name);
+    }).slice(0, limit || 20);
+
+    rows.forEach(function (row, idx) { row.rank = idx + 1; });
+
+    var scores = rows.map(function (r) { return r.score; });
+    return {
+      owner_name: OWNER,
+      ranking: rows,
+      stats: {
+        total_people: rows.length,
+        total_lookups: rows.reduce(function (s, r) { return s + r.lookup_count; }, 0),
+        avg_score: rows.length
+          ? Math.round(scores.reduce(function (s, v) { return s + v; }, 0) / rows.length * 10) / 10
+          : 0
+      }
+    };
+  }
+
+  function respond(body, status) {
+    return Promise.resolve({
+      ok: (status || 200) < 400,
+      status: status || 200,
+      json: function () { return Promise.resolve(body); }
+    });
+  }
+
+  // ---------------------------------------------------------- fetch 대체
+  window.fetch = function (url, options) {
+    var path = String(url).replace(/^.*\/api/, '');
+    var method = (options && options.method) || 'GET';
+    var store;
+
+    if (method === 'DELETE') {
+      store = loadStore();
+      if (path === '/ranking') {
+        var count = Object.keys(store).length;
+        saveStore({});
+        return respond({ deleted: count, message: count + '件を削除しました。' });
+      }
+      var m = path.match(/^\/ranking\/(.+)$/);
+      if (m) {
+        var target = decodeURIComponent(m[1]);
+        if (!store[target]) {
+          return respond(
+            { deleted: 0, message: '「' + target + '」の記録は見つかりませんでした。' }, 404
+          );
+        }
+        delete store[target];
+        saveStore(store);
+        return respond({ deleted: 1, message: '「' + target + '」を削除しました。' });
+      }
+      return respond({ error: 'NOT_FOUND' }, 404);
+    }
+
+    if (path.indexOf('/meta') === 0) {
+      return respond({
+        owner_name: OWNER,
+        owner_name_ja: 'シム・ヒョジン',
+        stats: ranking().stats
+      });
+    }
+
+    if (path.indexOf('/ranking') === 0) {
+      return respond(ranking(20));
+    }
+
+    if (path.indexOf('/fortune') === 0) {
+      return respond({
+        message: FORTUNES[Math.floor(Math.random() * FORTUNES.length)],
+        sign: null, item: null, total: null, source: 'fallback'
+      });
+    }
+
+    if (path.indexOf('/compatibility') === 0) {
+      var name = (JSON.parse(options.body).partner_name || '').trim();
+      if (!name) {
+        return respond({ error: 'EMPTY', message: 'お名前を入力してください。' }, 400);
+      }
+      if (!name.split('').every(isSyllable)) {
+        return respond(
+          { error: 'NOT_HANGUL', message: 'ハングル（한글）で入力してください。例: 야마다' }, 400
+        );
+      }
+      if (name.length < 2 || name.length > 8) {
+        return respond({ error: 'LENGTH', message: '2〜8文字のハングルで入力してください。' }, 400);
+      }
+
+      var result = calculate(name);
+      store = loadStore();
+      var prev = store[name];
+      store[name] = {
+        score: result.score,
+        grade_label: result.grade.label,
+        lookup_count: prev ? prev.lookup_count + 1 : 1,
+        created_at: prev ? prev.created_at : new Date().toISOString()
+      };
+      saveStore(store);
+      return respond(result);
+    }
+
+    return respond({ error: 'NOT_FOUND' }, 404);
+  };
+})();
+
+</script>
+<script>
+/* ===================================================================
+   カタカナ / ひらがな → ハングル 変換
+   -------------------------------------------------------------------
+   日本人ユーザーは韓国語キーボードを持っていないので、
+   カタカナ入力からハングルを作れる補助機能を提供する。
+
+   韓国の外来語表記法（일본어의 가나와 한글 대조표）に近い規則:
+     * カ行・タ行 は語頭では平音（가/다）、語中では激音（카/타）
+     * 「ツ」は常に「쓰」
+     * 長音「ー」は表記しない
+     * 撥音「ン」は パッチム ㄴ
+     * 促音「ッ」は パッチム ㅅ
+   =================================================================== */
+(function (global) {
+  'use strict';
+
+  var JONG_N = 4;   // ㄴ
+  var JONG_S = 19;  // ㅅ
+
+  // 語中（デフォルト）の対応表
+  var MAP = {
+    'ア': '아', 'イ': '이', 'ウ': '우', 'エ': '에', 'オ': '오',
+    'カ': '카', 'キ': '키', 'ク': '쿠', 'ケ': '케', 'コ': '코',
+    'サ': '사', 'シ': '시', 'ス': '스', 'セ': '세', 'ソ': '소',
+    'タ': '타', 'チ': '치', 'ツ': '쓰', 'テ': '테', 'ト': '토',
+    'ナ': '나', 'ニ': '니', 'ヌ': '누', 'ネ': '네', 'ノ': '노',
+    'ハ': '하', 'ヒ': '히', 'フ': '후', 'ヘ': '헤', 'ホ': '호',
+    'マ': '마', 'ミ': '미', 'ム': '무', 'メ': '메', 'モ': '모',
+    'ヤ': '야', 'ユ': '유', 'ヨ': '요',
+    'ラ': '라', 'リ': '리', 'ル': '루', 'レ': '레', 'ロ': '로',
+    'ワ': '와', 'ヲ': '오', 'ヰ': '이', 'ヱ': '에',
+    'ガ': '가', 'ギ': '기', 'グ': '구', 'ゲ': '게', 'ゴ': '고',
+    'ザ': '자', 'ジ': '지', 'ズ': '즈', 'ゼ': '제', 'ゾ': '조',
+    'ダ': '다', 'ヂ': '지', 'ヅ': '즈', 'デ': '데', 'ド': '도',
+    'バ': '바', 'ビ': '비', 'ブ': '부', 'ベ': '베', 'ボ': '보',
+    'パ': '파', 'ピ': '피', 'プ': '푸', 'ペ': '페', 'ポ': '포',
+    'ヴ': '부',
+    // 拗音
+    'キャ': '캬', 'キュ': '큐', 'キョ': '쿄', 'キェ': '켸',
+    'ギャ': '갸', 'ギュ': '규', 'ギョ': '교',
+    'シャ': '샤', 'シュ': '슈', 'ショ': '쇼', 'シェ': '셰',
+    'ジャ': '자', 'ジュ': '주', 'ジョ': '조', 'ジェ': '제',
+    'チャ': '차', 'チュ': '추', 'チョ': '초', 'チェ': '체',
+    'ニャ': '냐', 'ニュ': '뉴', 'ニョ': '뇨',
+    'ヒャ': '햐', 'ヒュ': '휴', 'ヒョ': '효',
+    'ビャ': '뱌', 'ビュ': '뷰', 'ビョ': '뵤',
+    'ピャ': '퍄', 'ピュ': '퓨', 'ピョ': '표',
+    'ミャ': '먀', 'ミュ': '뮤', 'ミョ': '묘',
+    'リャ': '랴', 'リュ': '류', 'リョ': '료',
+    'ファ': '파', 'フィ': '피', 'フェ': '페', 'フォ': '포', 'フュ': '휴',
+    'ティ': '티', 'トゥ': '투', 'ディ': '디', 'ドゥ': '두',
+    'ウィ': '위', 'ウェ': '웨', 'ウォ': '워',
+    'ヴァ': '바', 'ヴィ': '비', 'ヴェ': '베', 'ヴォ': '보',
+    'ツァ': '차', 'ツィ': '치', 'ツェ': '체', 'ツォ': '초'
+  };
+
+  // 語頭のみ平音になるもの
+  var MAP_INITIAL = {
+    'カ': '가', 'キ': '기', 'ク': '구', 'ケ': '게', 'コ': '고',
+    'タ': '다', 'チ': '지', 'テ': '데', 'ト': '도'
+  };
+  MAP_INITIAL['キャ'] = '갸';
+  MAP_INITIAL['キュ'] = '규';
+  MAP_INITIAL['キョ'] = '교';
+  MAP_INITIAL['チャ'] = '자';
+  MAP_INITIAL['チュ'] = '주';
+  MAP_INITIAL['チョ'] = '조';
+  MAP_INITIAL['チェ'] = '제';
+  MAP_INITIAL['ティ'] = '디';
+  MAP_INITIAL['トゥ'] = '두';
+
+  var SMALL = 'ャュョァィゥェォ';
+
+  /** ひらがな → カタカナ、全角統一、不要文字の除去 */
+  function normalize(text) {
+    var out = '';
+    for (var i = 0; i < text.length; i++) {
+      var code = text.charCodeAt(i);
+      // ひらがな(ぁ-ゖ) → カタカナ
+      if (code >= 0x3041 && code <= 0x3096) {
+        out += String.fromCharCode(code + 0x60);
+      } else {
+        out += text[i];
+      }
+    }
+    // 半角スペース/中黒/長音記号の異体を統一
+    return out.replace(/[・･\s]+/g, '').replace(/[〜~－―—–ｰ]/g, 'ー');
+  }
+
+  /** ハングル音節にパッチムを付ける */
+  function addJongsung(syllable, jongIdx) {
+    if (!syllable) return syllable;
+    var code = syllable.charCodeAt(syllable.length - 1) - 0xAC00;
+    if (code < 0 || code > 11171) return syllable;
+    var jong = code % 28;
+    if (jong !== 0) return syllable;               // 既にパッチムあり
+    var cho = Math.floor(code / 588);
+    var jung = Math.floor((code % 588) / 28);
+    var composed = String.fromCharCode(0xAC00 + (cho * 21 + jung) * 28 + jongIdx);
+    return syllable.slice(0, -1) + composed;
+  }
+
+  /**
+   * 直前のハングル音節の母音が o / u / その他 のどれかを判定する。
+   * 長音（おう・おお・うう）を省略するために使う。
+   */
+  function lastVowelClass(text) {
+    if (!text) return null;
+    var code = text.charCodeAt(text.length - 1) - 0xAC00;
+    if (code < 0 || code > 11171) return null;
+    if (code % 28 !== 0) return null;                 // パッチムがあれば長音扱いしない
+    var jung = Math.floor((code % 588) / 28);
+    if (jung === 8 || jung === 12) return 'o';        // ㅗ, ㅛ
+    if (jung === 13 || jung === 17) return 'u';       // ㅜ, ㅠ
+    return 'other';
+  }
+
+  /**
+   * カタカナ文字列をハングルに変換する。
+   * @returns {{hangul: string, unknown: string[]}}
+   */
+  function kanaToHangul(raw) {
+    var text = normalize(String(raw || ''));
+    var result = '';
+    var unknown = [];
+    var isFirst = true;
+    var i = 0;
+
+    while (i < text.length) {
+      var ch = text[i];
+
+      // 長音は表記しない
+      if (ch === 'ー') { i++; continue; }
+
+      // 促音 ッ -> 直前の音節に ㅅ
+      if (ch === 'ッ' || ch === 'ｯ') {
+        result = addJongsung(result, JONG_S);
+        i++;
+        continue;
+      }
+
+      // 撥音 ン -> 直前の音節に ㄴ
+      if (ch === 'ン') {
+        if (result) {
+          result = addJongsung(result, JONG_N);
+        } else {
+          result += '은';
+        }
+        i++;
+        continue;
+      }
+
+      // 拗音（2文字）を優先して照合
+      var two = text.substr(i, 2);
+      if (two.length === 2 && SMALL.indexOf(two[1]) >= 0) {
+        var mappedTwo = (isFirst && MAP_INITIAL[two]) || MAP[two];
+        if (mappedTwo) {
+          result += mappedTwo;
+          isFirst = false;
+          i += 2;
+          continue;
+        }
+      }
+
+      // 長音の省略: おう / おお / うう は伸ばす音なので書かない
+      //   さとう -> 사토,  こんどう -> 곤도,  ゆうこ -> 유코
+      var lastV = lastVowelClass(result);
+      if ((ch === 'ウ' && (lastV === 'o' || lastV === 'u')) ||
+          (ch === 'オ' && lastV === 'o')) {
+        i++;
+        continue;
+      }
+
+      // 単独カナ
+      var mapped = (isFirst && MAP_INITIAL[ch]) || MAP[ch];
+      if (mapped) {
+        result += mapped;
+        isFirst = false;
+        i += 1;
+        continue;
+      }
+
+      // 変換できない文字（漢字・アルファベットなど）
+      unknown.push(ch);
+      i += 1;
+    }
+
+    return { hangul: result, unknown: unknown };
+  }
+
+  global.KanaToHangul = { convert: kanaToHangul, normalize: normalize };
+})(typeof window !== 'undefined' ? window : globalThis);
+
+/* Node からもテストできるように */
+if (typeof module !== 'undefined' && module.exports) {
+  module.exports = (typeof window !== 'undefined' ? window : globalThis).KanaToHangul;
+}
+
+</script>
+<script>
+/* ===================================================================
+   韓国式 名前相性診断 — frontend logic
+   =================================================================== */
+(function () {
+  'use strict';
+
+  var API = '/api';
+  var GAUGE_CIRCUMFERENCE = 2 * Math.PI * 52;   // r=52
+
+  var el = {
+    ownerLabel:  document.getElementById('ownerLabel'),
+    form:        document.getElementById('diagForm'),
+    input:       document.getElementById('partnerName'),
+    submitBtn:   document.getElementById('submitBtn'),
+    errorBox:    document.getElementById('errorBox'),
+
+    kanaInput:   document.getElementById('kanaInput'),
+    kanaResult:  document.getElementById('kanaResult'),
+    kanaApply:   document.getElementById('kanaApply'),
+
+    resultCard:  document.getElementById('resultCard'),
+    resOwner:    document.getElementById('resOwner'),
+    resPartner:  document.getElementById('resPartner'),
+    scoreNum:    document.getElementById('scoreNum'),
+    gaugeBar:    document.getElementById('gaugeBar'),
+    resGrade:    document.getElementById('resGrade'),
+    resComment:  document.getElementById('resComment'),
+    mechBox:     document.getElementById('mechBox'),
+
+    stepDecompose: document.getElementById('stepDecompose'),
+    stepStrokes:   document.getElementById('stepStrokes'),
+    stepMerged:    document.getElementById('stepMerged'),
+    stepReduce:    document.getElementById('stepReduce'),
+    stepFinal:     document.getElementById('stepFinal'),
+
+    rankList:      document.getElementById('rankList'),
+    rankStats:     document.getElementById('rankStats'),
+    reloadRanking: document.getElementById('reloadRanking'),
+
+    toggleDelete:  document.getElementById('toggleDelete'),
+    deletePanel:   document.getElementById('deletePanel'),
+    deleteName:    document.getElementById('deleteName'),
+    deleteOne:     document.getElementById('deleteOne'),
+    deleteAll:     document.getElementById('deleteAll'),
+    deleteMsg:     document.getElementById('deleteMsg'),
+
+    cookieBtn:  document.getElementById('cookieBtn'),
+    cookieBox:  document.getElementById('cookieBox'),
+    cookieMsg:  document.getElementById('cookieMsg'),
+    cookieMeta: document.getElementById('cookieMeta')
+  };
+
+  var ownerName = '심효진';
+
+  // ----------------------------------------------------------- helpers
+  function api(path, options) {
+    return fetch(API + path, options).then(function (res) {
+      return res.json().catch(function () { return {}; }).then(function (body) {
+        if (!res.ok) {
+          var err = new Error(body.message || 'リクエストに失敗しました。');
+          err.code = body.error;
+          throw err;
+        }
+        return body;
+      });
+    });
+  }
+
+  function showError(message) {
+    el.errorBox.textContent = message;
+    el.errorBox.hidden = false;
+  }
+
+  function clearError() {
+    el.errorBox.hidden = true;
+    el.errorBox.textContent = '';
+  }
+
+  function setLoading(button, loading) {
+    button.disabled = loading;
+    button.classList.toggle('is-loading', loading);
+  }
+
+  function numChip(value, variant) {
+    var span = document.createElement('span');
+    span.className = 'num' + (variant ? ' num--' + variant : '');
+    span.textContent = value;
+    return span;
+  }
+
+  // ----------------------------------------------------------- カタカナ変換
+  function updateKanaPreview() {
+    var raw = el.kanaInput.value.trim();
+    if (!raw) {
+      el.kanaResult.textContent = '—';
+      el.kanaApply.disabled = true;
+      return;
+    }
+    var converted = window.KanaToHangul.convert(raw);
+    if (!converted.hangul) {
+      el.kanaResult.textContent = '変換できません';
+      el.kanaApply.disabled = true;
+      return;
+    }
+    el.kanaResult.textContent = converted.hangul +
+      (converted.unknown.length ? '（' + converted.unknown.join('') + 'は変換不可）' : '');
+    el.kanaApply.disabled = false;
+    el.kanaApply.dataset.value = converted.hangul;
+  }
+
+  el.kanaInput.addEventListener('input', updateKanaPreview);
+
+  el.kanaApply.addEventListener('click', function () {
+    var value = el.kanaApply.dataset.value || '';
+    if (!value) return;
+    el.input.value = value.slice(0, 8);
+    clearError();
+    el.input.focus();
+  });
+
+  // ----------------------------------------------------------- 診断
+  el.form.addEventListener('submit', function (event) {
+    event.preventDefault();
+    clearError();
+
+    var name = el.input.value.trim();
+    if (!name) {
+      showError('お名前を入力してください。');
+      return;
+    }
+
+    setLoading(el.submitBtn, true);
+
+    api('/compatibility', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ partner_name: name })
+    })
+      .then(function (data) {
+        renderResult(data);
+        return loadRanking();
+      })
+      .catch(function (err) {
+        showError(err.message || '診断に失敗しました。時間をおいてお試しください。');
+      })
+      .then(function () {
+        setLoading(el.submitBtn, false);
+      });
+  });
+
+  function renderResult(data) {
+    el.resultCard.hidden = false;
+    el.resOwner.textContent = data.owner_name;
+    el.resPartner.textContent = data.partner_name;
+    el.resGrade.textContent = data.grade.label;
+    el.resComment.textContent = data.grade.comment;
+
+    animateScore(data.score);
+    renderSteps(data);
+
+    el.resultCard.scrollIntoView({ behavior: 'smooth', block: 'start' });
+  }
+
+  function animateScore(score) {
+    el.gaugeBar.style.strokeDasharray = GAUGE_CIRCUMFERENCE.toFixed(1);
+    el.gaugeBar.style.strokeDashoffset = GAUGE_CIRCUMFERENCE.toFixed(1);
+    // reflow を挟んでからアニメーションさせる
+    void el.gaugeBar.getBoundingClientRect();
+    el.gaugeBar.style.strokeDashoffset =
+      (GAUGE_CIRCUMFERENCE * (1 - score / 100)).toFixed(1);
+
+    var start = performance.now();
+    var duration = 1000;
+    function tick(now) {
+      var t = Math.min(1, (now - start) / duration);
+      var eased = 1 - Math.pow(1 - t, 3);
+      el.scoreNum.textContent = Math.round(score * eased);
+      if (t < 1) requestAnimationFrame(tick);
+      else el.scoreNum.textContent = score;
+    }
+    requestAnimationFrame(tick);
+  }
+
+  // ----------------------------------------------------------- 計算過程
+  function renderSteps(data) {
+    var steps = data.steps;
+
+    // ① 자모 분해
+    el.stepDecompose.innerHTML = '';
+    el.stepDecompose.appendChild(
+      jamoRow(data.owner_name, steps.step1_decompose.owner, 'me')
+    );
+    el.stepDecompose.appendChild(
+      jamoRow(data.partner_name, steps.step1_decompose.partner, 'you')
+    );
+
+    // ② 획수
+    el.stepStrokes.innerHTML = '';
+    el.stepStrokes.appendChild(
+      strokeLine(data.owner_name, steps.step1_decompose.owner, steps.step2_strokes.owner, 'me')
+    );
+    el.stepStrokes.appendChild(
+      strokeLine(data.partner_name, steps.step1_decompose.partner, steps.step2_strokes.partner, 'you')
+    );
+
+    // ③ 교차 배열 — 어느 쪽 숫자인지 색으로 구분
+    el.stepMerged.innerHTML = '';
+    var ownerLen = steps.step2_strokes.owner.length;
+    var partnerLen = steps.step2_strokes.partner.length;
+    var order = interleaveOrigins(ownerLen, partnerLen);
+    steps.step3_interleaved.forEach(function (value, idx) {
+      el.stepMerged.appendChild(numChip(value, order[idx]));
+    });
+
+    // ④ 인접합 피라미드
+    el.stepReduce.innerHTML = '';
+    steps.step4_reduction.forEach(function (row, rowIdx) {
+      var line = document.createElement('div');
+      line.className = 'numrow';
+      var isLast = rowIdx === steps.step4_reduction.length - 1;
+      row.forEach(function (value, colIdx) {
+        var variant = null;
+        if (isLast) variant = 'last';
+        else if (rowIdx === 0) variant = order[colIdx];
+        line.appendChild(numChip(value, variant));
+      });
+      el.stepReduce.appendChild(line);
+    });
+
+    // ⑤ 최종
+    var last = steps.step4_reduction[steps.step4_reduction.length - 1];
+    el.stepFinal.textContent =
+      last[0] + ' と ' + last[1] + ' → ' + data.score + '%';
+  }
+
+  function interleaveOrigins(ownerLen, partnerLen) {
+    var origins = [];
+    for (var i = 0; i < Math.max(ownerLen, partnerLen); i++) {
+      if (i < ownerLen) origins.push('me');
+      if (i < partnerLen) origins.push('you');
+    }
+    return origins;
+  }
+
+  function jamoRow(name, syllables, variant) {
+    var row = document.createElement('div');
+    row.className = 'jamo-row';
+
+    var who = document.createElement('span');
+    who.className = 'jamo-row__who';
+    who.textContent = name;
+    row.appendChild(who);
+
+    syllables.forEach(function (syl) {
+      var box = document.createElement('span');
+      box.className = 'jamo-syl';
+
+      var char = document.createElement('span');
+      char.className = 'jamo-syl__char';
+      char.textContent = syl.char;
+      box.appendChild(char);
+
+      var eq = document.createElement('span');
+      eq.className = 'jamo-syl__eq';
+      eq.textContent = '=';
+      box.appendChild(eq);
+
+      syl.jamos.forEach(function (jamo, idx) {
+        var chip = document.createElement('span');
+        chip.className = 'jamo-chip';
+        chip.innerHTML = (idx > 0 ? '+ ' : '') +
+          '<b>' + jamo.char + '</b>' + jamo.strokes;
+        chip.title = jamo.role_label + ' / ' + jamo.strokes + '画';
+        box.appendChild(chip);
+      });
+
+      var sum = document.createElement('span');
+      sum.className = 'jamo-syl__sum';
+      sum.textContent = syl.strokes + '画';
+      box.appendChild(sum);
+
+      row.appendChild(box);
+    });
+
+    return row;
+  }
+
+  function strokeLine(name, syllables, strokes, variant) {
+    var line = document.createElement('div');
+    line.className = 'stroke-line';
+
+    var who = document.createElement('span');
+    who.className = 'stroke-line__who';
+    who.textContent = name;
+    line.appendChild(who);
+
+    strokes.forEach(function (value, idx) {
+      var wrapper = document.createElement('span');
+      wrapper.style.display = 'inline-flex';
+      wrapper.style.alignItems = 'center';
+      wrapper.style.gap = '4px';
+      wrapper.style.marginRight = '8px';
+
+      var label = document.createElement('span');
+      label.style.fontWeight = '700';
+      label.textContent = syllables[idx] ? syllables[idx].char : '';
+      wrapper.appendChild(label);
+      wrapper.appendChild(numChip(value, variant));
+      line.appendChild(wrapper);
+    });
+
+    return line;
+  }
+
+  // ----------------------------------------------------------- ランキング
+  function loadRanking() {
+    return api('/ranking?limit=20')
+      .then(function (data) {
+        renderRanking(data);
+      })
+      .catch(function () {
+        el.rankList.innerHTML =
+          '<li class="rank__empty">ランキングを取得できませんでした。</li>';
+      });
+  }
+
+  var MEDALS = ['🥇', '🥈', '🥉'];
+
+  function renderRanking(data) {
+    var rows = data.ranking || [];
+    el.rankList.innerHTML = '';
+
+    if (data.stats) {
+      el.rankStats.textContent =
+        '参加者 ' + data.stats.total_people + '人 / 診断回数 ' +
+        data.stats.total_lookups + '回 / 平均相性 ' + data.stats.avg_score + '%';
+    }
+
+    if (!rows.length) {
+      el.rankList.innerHTML =
+        '<li class="rank__empty">まだ誰も診断していません。</li>';
+      return;
+    }
+
+    rows.forEach(function (row) {
+      var li = document.createElement('li');
+      li.className = 'rank__item' + (row.rank <= 3 ? ' rank__item--top' + row.rank : '');
+
+      var no = document.createElement('span');
+      no.className = 'rank__no';
+      no.textContent = row.rank <= 3 ? MEDALS[row.rank - 1] : row.rank;
+      li.appendChild(no);
+
+      var nameBox = document.createElement('span');
+      nameBox.className = 'rank__name';
+      nameBox.textContent = row.partner_name;
+      var grade = document.createElement('span');
+      grade.className = 'rank__grade';
+      grade.textContent = ' ' + row.grade_label;
+      nameBox.appendChild(grade);
+      li.appendChild(nameBox);
+
+      var score = document.createElement('span');
+      score.className = 'rank__score';
+      score.textContent = row.score + '%';
+      li.appendChild(score);
+
+      el.rankList.appendChild(li);
+    });
+  }
+
+  el.reloadRanking.addEventListener('click', function () {
+    setLoading(el.reloadRanking, true);
+    loadRanking().then(function () { setLoading(el.reloadRanking, false); });
+  });
+
+  // ----------------------------------------------------------- 削除
+  el.toggleDelete.addEventListener('click', function () {
+    el.deletePanel.hidden = !el.deletePanel.hidden;
+    el.deleteMsg.hidden = true;
+    if (!el.deletePanel.hidden) el.deleteName.focus();
+  });
+
+  function showDeleteMsg(text, ok) {
+    el.deleteMsg.textContent = text;
+    el.deleteMsg.className = 'danger__msg ' + (ok ? 'danger__msg--ok' : 'danger__msg--err');
+    el.deleteMsg.hidden = false;
+  }
+
+  el.deleteOne.addEventListener('click', function () {
+    var name = el.deleteName.value.trim();
+    if (!name) {
+      showDeleteMsg('お名前を入力してください。', false);
+      return;
+    }
+    if (!window.confirm('「' + name + '」の記録を削除します。よろしいですか？')) return;
+
+    setLoading(el.deleteOne, true);
+    api('/ranking/' + encodeURIComponent(name), { method: 'DELETE' })
+      .then(function (data) {
+        showDeleteMsg(data.message, true);
+        el.deleteName.value = '';
+        return loadRanking();
+      })
+      .catch(function (err) {
+        showDeleteMsg(err.message || '削除に失敗しました。', false);
+      })
+      .then(function () { setLoading(el.deleteOne, false); });
+  });
+
+  el.deleteAll.addEventListener('click', function () {
+    if (!window.confirm('ランキングを全部削除します。元に戻せません。よろしいですか？')) return;
+
+    setLoading(el.deleteAll, true);
+    api('/ranking', { method: 'DELETE' })
+      .then(function (data) {
+        showDeleteMsg(data.message, true);
+        return loadRanking();
+      })
+      .catch(function (err) {
+        showDeleteMsg(err.message || '削除に失敗しました。', false);
+      })
+      .then(function () { setLoading(el.deleteAll, false); });
+  });
+
+  // ----------------------------------------------------------- フォーチュンクッキー
+  el.cookieBtn.addEventListener('click', function () {
+    setLoading(el.cookieBtn, true);
+    api('/fortune')
+      .then(function (data) {
+        el.cookieBox.hidden = false;
+        el.cookieMsg.textContent = data.message;
+        var meta = [];
+        if (data.sign) meta.push(data.sign);
+        if (data.item) meta.push('ラッキーアイテム: ' + data.item);
+        meta.push(data.source === 'api' ? '外部API より' : 'オフラインメッセージ');
+        el.cookieMeta.textContent = meta.join(' ・ ');
+      })
+      .catch(function () {
+        el.cookieBox.hidden = false;
+        el.cookieMsg.textContent = 'クッキーが割れませんでした…もう一度どうぞ。';
+        el.cookieMeta.textContent = '';
+      })
+      .then(function () {
+        setLoading(el.cookieBtn, false);
+      });
+  });
+
+  // ----------------------------------------------------------- 初期化
+  api('/meta')
+    .then(function (data) {
+      ownerName = data.owner_name || ownerName;
+      el.ownerLabel.textContent = data.owner_name_ja || ownerName;
+      el.resOwner.textContent = ownerName;
+    })
+    .catch(function () { /* メタ取得失敗は致命的ではない */ });
+
+  loadRanking();
+})();
+
+</script>
+</body>
+</html>

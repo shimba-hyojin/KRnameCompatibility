@@ -1,0 +1,164 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>韓国式 名前相性診断</title>
+<meta name="description" content="韓国で定番の「이름궁합（名前の画数占い）」を日本語で。ハングルの画数から相性度を計算します。">
+<!-- ?v= 는 캐시 무효화용. 프론트엔드를 고칠 때마다 숫자를 올린다. -->
+<link rel="stylesheet" href="/css/style.css?v=3">
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>💗</text></svg>">
+</head>
+<body>
+
+<div class="wrap">
+
+  <header class="hero">
+    <p class="hero__kicker">韓国の定番あそび「이름궁합」</p>
+    <h1 class="hero__title">韓国式<br>名前相性診断</h1>
+    <p class="hero__sub">ハングルの<b>画数</b>だけで相性を占います。<br>当たっても外れても、笑って許してください。</p>
+  </header>
+
+  <!-- ============================ 診断カード ============================ -->
+  <section class="card">
+    <div class="pair">
+      <span class="pair__me" id="ownerLabel">シム・ヒョジン</span>
+      <span class="pair__x">×</span>
+      <span class="pair__you">チームメンバー</span>
+    </div>
+
+    <form id="diagForm" novalidate>
+      <label class="label" for="partnerName">
+        チームメンバーのお名前 <span class="label__req">ハングル</span>
+      </label>
+      <input id="partnerName" class="input" type="text" inputmode="text"
+             placeholder="야마다" autocomplete="off" maxlength="8">
+
+      <details class="helper">
+        <summary>ハングルが打てない方はこちら（カタカナ変換）</summary>
+        <div class="helper__body">
+          <label class="label label--sm" for="kanaInput">カタカナ / ひらがな で入力</label>
+          <input id="kanaInput" class="input input--sm" type="text"
+                 placeholder="やまだ / ヤマダ" autocomplete="off">
+          <div class="helper__preview">
+            <span>→</span>
+            <output id="kanaResult" class="helper__out">—</output>
+            <button type="button" id="kanaApply" class="btn btn--ghost btn--sm" disabled>これを使う</button>
+          </div>
+          <p class="helper__note">
+            韓国の外来語表記ルールに近い形で変換します（長音「ー」は省略、「ん」は ㄴ、「っ」は ㅅ）。
+            気になるときは直接ハングルを書き換えてください。
+          </p>
+        </div>
+      </details>
+
+      <p class="error" id="errorBox" hidden></p>
+      <button type="submit" class="btn btn--primary" id="submitBtn">相性を診断する</button>
+    </form>
+  </section>
+
+  <!-- ============================ 結果カード ============================ -->
+  <section class="card card--result" id="resultCard" hidden>
+    <h2 class="card__title">診断結果</h2>
+    <p class="result__pair"><span id="resOwner">심효진</span> × <span id="resPartner">—</span></p>
+
+    <div class="gauge">
+      <svg viewBox="0 0 120 120" class="gauge__svg" aria-hidden="true">
+        <circle class="gauge__track" cx="60" cy="60" r="52"></circle>
+        <circle class="gauge__bar" cx="60" cy="60" r="52" id="gaugeBar"></circle>
+      </svg>
+      <div class="gauge__inner">
+        <span class="gauge__num" id="scoreNum">0</span><span class="gauge__pct">%</span>
+        <span class="gauge__cap">相性度</span>
+      </div>
+    </div>
+
+    <p class="result__grade" id="resGrade">—</p>
+    <p class="result__comment" id="resComment">—</p>
+
+    <details class="mech" id="mechBox">
+      <summary>どんな仕組み？</summary>
+      <div class="mech__body">
+
+        <div class="mech__step">
+          <h3 class="mech__h">① ハングルを子音・母音に分解</h3>
+          <div id="stepDecompose" class="jamo-grid"></div>
+        </div>
+
+        <div class="mech__step">
+          <h3 class="mech__h">② それぞれの画数を計算</h3>
+          <div id="stepStrokes" class="stroke-lines"></div>
+        </div>
+
+        <div class="mech__step">
+          <h3 class="mech__h">③ 数字を交互に組み合わせる</h3>
+          <div id="stepMerged" class="numrow"></div>
+          <p class="mech__note">「심효진」の画数と相手の画数を交互に並べます。</p>
+        </div>
+
+        <div class="mech__step">
+          <h3 class="mech__h">④ 隣り合う数字を足して1の位を残す</h3>
+          <div id="stepReduce" class="pyramid"></div>
+          <p class="mech__note">残りが2つになるまで繰り返します。</p>
+        </div>
+
+        <div class="mech__step">
+          <h3 class="mech__h">⑤ 最後に残った2つの数字が相性度</h3>
+          <p class="mech__final" id="stepFinal">—</p>
+        </div>
+
+      </div>
+    </details>
+  </section>
+
+  <!-- ============================ ランキング ============================ -->
+  <section class="card">
+    <div class="card__head">
+      <h2 class="card__title">名前相性ランキング</h2>
+      <div class="card__actions">
+        <button type="button" class="btn btn--ghost btn--sm" id="reloadRanking">更新</button>
+        <button type="button" class="btn btn--ghost btn--sm" id="toggleDelete">削除</button>
+      </div>
+    </div>
+    <p class="card__desc" id="rankStats">シム・ヒョジンとの相性が高い順に表示されます。</p>
+
+    <div class="danger" id="deletePanel" hidden>
+      <label class="label label--sm" for="deleteName">削除するお名前（ハングル）</label>
+      <div class="danger__row">
+        <input id="deleteName" class="input input--sm" type="text"
+               placeholder="야마다" autocomplete="off" maxlength="8">
+        <button type="button" class="btn btn--danger btn--sm" id="deleteOne">この名前を削除</button>
+      </div>
+      <button type="button" class="btn btn--danger btn--block" id="deleteAll">
+        ランキングを全部削除
+      </button>
+      <p class="danger__note">削除したデータは元に戻せません。</p>
+      <p class="danger__msg" id="deleteMsg" hidden></p>
+    </div>
+
+    <ol class="rank" id="rankList">
+      <li class="rank__empty">まだ誰も診断していません。</li>
+    </ol>
+  </section>
+
+  <!-- ============================ フォーチュンクッキー ============================ -->
+  <section class="card card--cookie">
+    <h2 class="card__title">フォーチュンクッキー</h2>
+    <p class="card__desc">相性とは関係なく、今日のひとことを引けます。</p>
+    <div class="cookie" id="cookieBox" hidden>
+      <p class="cookie__msg" id="cookieMsg">—</p>
+      <p class="cookie__meta" id="cookieMeta"></p>
+    </div>
+    <button type="button" class="btn btn--cookie" id="cookieBtn">🥠 クッキーを開ける</button>
+  </section>
+
+  <footer class="foot">
+    <p class="foot__tech">Flask · MySQL(RDS) · Nginx · Docker · EC2 · Datadog</p>
+  </footer>
+
+</div>
+
+<script src="/js/kana2hangul.js?v=3"></script>
+<script src="/js/app.js?v=3"></script>
+</body>
+</html>

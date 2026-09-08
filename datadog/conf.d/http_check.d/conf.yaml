@@ -1,0 +1,31 @@
+## 외부에서 서비스가 살아있는지 감시 (Synthetic 대체용 간단 체크)
+## 배치 위치: /etc/datadog-agent/conf.d/http_check.d/conf.yaml
+
+## 체크 주기는 기본값(15초). 너무 자주 찍혀서 거슬리면 각 instance에
+## min_collection_interval: 60  을 추가한다.
+
+init_config:
+
+instances:
+  - name: name-compat-health
+    url: http://localhost/api/health
+    timeout: 5
+    tags:
+      - service:name-compat-api
+      - project:name-compat
+
+  - name: name-compat-top
+    url: http://localhost/
+    timeout: 5
+    tags:
+      - service:name-compat-web
+      - project:name-compat
+
+  # 외부 Fortune API 자체의 가용성도 함께 본다
+  - name: fortune-external-api
+    url: https://jugemkey.jp/api/waf/api.php
+    timeout: 5
+    skip_event: true
+    tags:
+      - service:fortune-external
+      - project:name-compat

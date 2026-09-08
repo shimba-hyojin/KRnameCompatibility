@@ -1,0 +1,11 @@
+Flask==3.0.3
+gunicorn==22.0.0
+PyMySQL==1.1.1
+requests==2.32.3
+# Datadog APM (트레이싱). 사용하지 않으려면 DD_TRACE_ENABLED=false
+ddtrace==2.10.5
+# ddtrace 자동 계측에 필요. 없으면 ModuleNotFoundError: No module named 'wrapt' 로
+# 계측이 조용히 실패하고 모든 로그의 dd.trace_id 가 0 이 된다.
+wrapt>=1.16.0
+# 개발/테스트
+pytest==8.3.2

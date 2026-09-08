@@ -1,0 +1,139 @@
+########################################################################
+# 韓国式 名前相性診断 — Docker Compose
+#
+#  local  : app + nginx + mysql + (선택) datadog
+#  prod   : app + nginx + datadog   (DB는 Amazon RDS 사용 -> mysql 프로파일 제외)
+#
+#  로컬 기동:  docker compose --profile local up -d --build
+#  운영 기동:  docker compose up -d --build         (mysql 컨테이너 없음)
+#  Datadog:   docker compose --profile datadog up -d
+########################################################################
+
+services:
+
+  # ------------------------------------------------------------ Backend
+  app:
+    build: ./backend
+    container_name: namecompat-app
+    restart: unless-stopped
+    env_file: .env
+    environment:
+      SERVE_STATIC: "false"          # 정적 파일은 Nginx가 담당
+      PORT: "8000"
+      # --- Datadog APM ---
+      DD_AGENT_HOST: "datadog"
+      DD_TRACE_AGENT_PORT: "8126"
+      DD_SERVICE: "name-compat-api"
+      DD_ENV: "${APP_ENV:-local}"
+      DD_VERSION: "1.0.0"
+      DD_TRACE_ENABLED: "${DD_TRACE_ENABLED:-false}"
+      # 로그 ↔ 트레이스 상관관계 (로그에 dd.trace_id 주입)
+      DD_LOGS_INJECTION: "true"
+      # 트래픽이 적은 학습용이라 100% 샘플링 (모든 요청이 APM에 보인다)
+      DD_TRACE_SAMPLE_RATE: "1.0"
+      # DB 스팬에 SQL을 남긴다 (pymysql 자동 계측)
+      DD_TRACE_PYMYSQL_ENABLED: "true"
+      DD_DBM_PROPAGATION_MODE: "full"   # APM 스팬 ↔ DBM 쿼리 연결
+      # 서비스 맵에서 DB를 별도 노드로 표시
+      DD_SERVICE_MAPPING: "mysql:name-compat-db"
+      DD_TRACE_STARTUP_LOGS: "false"
+    expose:
+      - "8000"
+    networks: [appnet]
+    labels:
+      # Datadog Autodiscovery: 이 컨테이너의 stdout 로그를 JSON으로 수집
+      com.datadoghq.ad.logs: '[{"source":"python","service":"name-compat-api"}]'
+
+  # ------------------------------------------------------------ Nginx
+  nginx:
+    image: nginx:1.27-alpine
+    container_name: namecompat-nginx
+    restart: unless-stopped
+    depends_on: [app]
+    ports:
+      - "80:80"
+      - "443:443"
+    volumes:
+      - ./nginx/00-upstream.conf:/etc/nginx/conf.d/00-upstream.conf:ro
+      - ./nginx/default.conf:/etc/nginx/conf.d/default.conf:ro
+      - ./frontend:/usr/share/nginx/html:ro
+      - nginx-logs:/var/log/nginx
+      # HTTPS(certbot) 사용 시 주석 해제
+      # - /etc/letsencrypt:/etc/letsencrypt:ro
+    networks: [appnet]
+    labels:
+      com.datadoghq.ad.check_names: '["nginx"]'
+      com.datadoghq.ad.init_configs: '[{}]'
+      com.datadoghq.ad.instances: '[{"nginx_status_url":"http://%%host%%:81/nginx_status"}]'
+      com.datadoghq.ad.logs: '[{"source":"nginx","service":"name-compat-web"}]'
+
+  # ------------------------------------------------------------ MySQL (로컬 개발용)
+  mysql:
+    image: mysql:8.0
+    container_name: namecompat-mysql
+    profiles: ["local"]
+    restart: unless-stopped
+    environment:
+      MYSQL_ROOT_PASSWORD: "${MYSQL_ROOT_PASSWORD:-rootpassword}"
+      MYSQL_DATABASE: "${DB_NAME:-namecompat}"
+      MYSQL_USER: "${DB_USER:-appuser}"
+      MYSQL_PASSWORD: "${DB_PASSWORD:-apppassword}"
+    command: >
+      --character-set-server=utf8mb4
+      --collation-server=utf8mb4_unicode_ci
+    ports:
+      - "3306:3306"
+    volumes:
+      - mysql-data:/var/lib/mysql
+      - ./db/init.sql:/docker-entrypoint-initdb.d/init.sql:ro
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-h", "127.0.0.1", "-p${MYSQL_ROOT_PASSWORD:-rootpassword}"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+    networks: [appnet]
+
+  # ------------------------------------------------------------ Datadog Agent
+  datadog:
+    image: gcr.io/datadoghq/agent:7
+    container_name: namecompat-datadog
+    profiles: ["datadog"]
+    restart: unless-stopped
+    environment:
+      DD_API_KEY: "${DD_API_KEY}"
+      DD_SITE: "${DD_SITE:-datadoghq.com}"
+      DD_HOSTNAME: "${DD_HOSTNAME:-hyojin-ubuntu}"
+      DD_TAGS: "env:${APP_ENV:-local} service:name-compat project:name-compat"
+      # 인프라 메트릭
+      DD_PROCESS_AGENT_ENABLED: "true"
+      # 로그 수집
+      DD_LOGS_ENABLED: "true"
+      DD_LOGS_CONFIG_CONTAINER_COLLECT_ALL: "true"
+      DD_CONTAINER_EXCLUDE: "name:namecompat-datadog"
+      # APM
+      DD_APM_ENABLED: "true"
+      DD_APM_NON_LOCAL_TRAFFIC: "true"
+      # 헬스체크 트레이스가 APM 화면을 채워서 거슬리면 아래 주석을 해제한다.
+      # (로그와 http_check 메트릭에는 그대로 남으므로 다운 감지는 계속 동작)
+      # DD_APM_IGNORE_RESOURCES: "GET /api/health,GET /api/meta"
+      # Database Monitoring (RDS 쿼리 성능). mysql.d/conf.yaml 의 dbm:true 와 짝
+      DD_DATABASE_MONITORING_ENABLED: "true"
+      # 컨테이너 라벨 기반 Autodiscovery
+      DD_LISTENERS: "docker"
+      DD_CONFIG_PROVIDERS: "docker"
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock:ro
+      - /proc/:/host/proc/:ro
+      - /sys/fs/cgroup/:/host/sys/fs/cgroup:ro
+      - /var/lib/docker/containers:/var/lib/docker/containers:ro
+      - nginx-logs:/var/log/nginx:ro
+      - ./datadog/conf.d:/conf.d:ro
+    networks: [appnet]
+
+volumes:
+  mysql-data:
+  nginx-logs:
+
+networks:
+  appnet:
+    driver: bridge

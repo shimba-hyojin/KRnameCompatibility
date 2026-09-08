@@ -1,0 +1,37 @@
+## Datadog Nginx Integration
+## - stub_status 메트릭 (요청수/커넥션)
+## - access log / error log 수집
+##
+## 도커 라벨 기반 Autodiscovery를 쓰면 이 파일은 없어도 되지만,
+## EC2에 Nginx를 직접 설치한 경우(호스트 Agent)에는 이 파일을
+## /etc/datadog-agent/conf.d/nginx.d/conf.yaml 에 둔다.
+
+init_config:
+
+instances:
+  - nginx_status_url: http://localhost:81/nginx_status
+    tags:
+      - service:name-compat-web
+      - project:name-compat
+
+logs:
+  - type: file
+    path: /var/log/nginx/access.log
+    service: name-compat-web
+    source: nginx
+    sourcecategory: http_web_access
+    # default.conf 의 json_combined 포맷을 그대로 파싱
+    log_processing_rules:
+      - type: exclude_at_match
+        name: exclude_healthcheck
+        pattern: '"path":"/api/health"'
+
+  - type: file
+    path: /var/log/nginx/error.log
+    service: name-compat-web
+    source: nginx
+    sourcecategory: http_web_access
+    log_processing_rules:
+      - type: multi_line
+        name: new_log_start_with_date
+        pattern: \d{4}/\d{2}/\d{2}
