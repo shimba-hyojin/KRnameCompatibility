@@ -517,13 +517,34 @@ Datadog UI → Infrastructure → Host Map に `hyojin-ubuntu` が出れば成�
 
 ### 8-2. MySQL / RDS の連携
 
+この設定ファイルには DB パスワードが入るため、**git には入りません**（`.gitignore` 済み）。
+リポジトリにあるのはテンプレート（`conf.yaml.example`）だけなので、まず複製します。
+
 ```bash
-nano datadog/conf.d/mysql.d/conf.yaml   # <RDS_ENDPOINT>、パスワードを埋める
+cd ~/name-compat/datadog/conf.d/mysql.d
+cp conf.yaml.example conf.yaml
+nano conf.yaml          # <RDS_ENDPOINT> 2箇所とパスワードを埋める
+cd ~/name-compat
+
+# 検証してから適用
+python3 -c "import yaml; yaml.safe_load(open('datadog/conf.d/mysql.d/conf.yaml')); print('YAML OK')"
 docker compose restart datadog
-docker compose exec datadog agent check mysql
+sleep 25
+docker compose exec datadog agent check mysql 2>&1 | head -30
 ```
 
+`mysql.net.connections` などのメトリクスが並べば成功です。
+
 ファイル冒頭のコメントに datadog アカウントの作成 SQL と DBM 用パラメータグループの設定が整理されています。
+
+| エラー | 原因 |
+|---|---|
+| `Access denied for user 'datadog'` | パスワード不一致、またはアカウント未作成 |
+| `Name or service not known` | エンドポイントのタイプミス |
+| `performance_schema` 関連 | `dbm: true` のまま。パラメータグループ未設定なら `false` にする |
+
+> テンプレートの既定値は `dbm: false` です。DBM を使うには RDS のパラメータグループ変更と
+> 再起動が必要なので、まず `false` で基本メトリクスを確認してから切り替えます。
 
 さらに **AWS Integration** を繋ぐと CloudWatch の RDS メトリクス
 （`aws.rds.cpuutilization`、`aws.rds.free_storage_space` など）まで入ってきます。

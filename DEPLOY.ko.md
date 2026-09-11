@@ -512,13 +512,34 @@ Datadog UI → Infrastructure → Host Map 에 `hyojin-ubuntu`가 뜨면 성공 
 
 ### 8-2. MySQL / RDS 연동
 
+이 설정 파일에는 DB 비밀번호가 들어가므로 **git에 올라가지 않는다** (`.gitignore` 등록됨).
+저장소에는 템플릿(`conf.yaml.example`)만 있으니 먼저 복제한다.
+
 ```bash
-nano datadog/conf.d/mysql.d/conf.yaml   # <RDS_ENDPOINT>, 비밀번호 채우기
+cd ~/name-compat/datadog/conf.d/mysql.d
+cp conf.yaml.example conf.yaml
+nano conf.yaml          # <RDS_ENDPOINT> 2곳과 비밀번호를 채운다
+cd ~/name-compat
+
+# 검증 후 적용
+python3 -c "import yaml; yaml.safe_load(open('datadog/conf.d/mysql.d/conf.yaml')); print('YAML OK')"
 docker compose restart datadog
-docker compose exec datadog agent check mysql
+sleep 25
+docker compose exec datadog agent check mysql 2>&1 | head -30
 ```
 
+`mysql.net.connections` 같은 메트릭이 나열되면 성공이다.
+
 파일 상단 주석에 datadog 계정 생성 SQL과 DBM용 파라미터 그룹 설정이 정리되어 있다.
+
+| 에러 | 원인 |
+|---|---|
+| `Access denied for user 'datadog'` | 비밀번호 불일치 또는 계정 미생성 |
+| `Name or service not known` | 엔드포인트 오타 |
+| `performance_schema` 관련 | `dbm: true` 로 남아있음. 파라미터 그룹 미설정이면 `false` 로 |
+
+> 템플릿의 기본값은 `dbm: false` 다. DBM을 쓰려면 RDS 파라미터 그룹 변경과 재부팅이
+> 필요하므로, 먼저 `false` 로 기본 메트릭을 확인한 뒤 전환한다.
 
 추가로 **AWS Integration**을 붙이면 CloudWatch의 RDS 메트릭
 (`aws.rds.cpuutilization`, `aws.rds.free_storage_space` 등)까지 들어온다.

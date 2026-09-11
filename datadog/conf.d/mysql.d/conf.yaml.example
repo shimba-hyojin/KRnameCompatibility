@@ -1,0 +1,70 @@
+## Datadog MySQL Integration (Amazon RDS for MySQL) — テンプレート / 템플릿
+##
+## このファイルはテンプレートです。実際に使うには複製してから値を埋めます。
+## 이 파일은 템플릿이다. 실제로 쓸 때는 복사한 뒤 값을 채운다.
+##
+##   cp conf.yaml.example conf.yaml
+##   nano conf.yaml
+##   docker compose restart datadog
+##
+## conf.yaml は .gitignore に登録されているため git には入りません（パスワードを含むため）。
+## conf.yaml 은 .gitignore 에 등록되어 있어 git에 올라가지 않는다 (비밀번호가 들어가므로).
+##
+## ─────────────────────────────────────────────────────────────────
+## 事前準備 1) RDS に datadog アカウントを作る / 사전 준비 1) datadog 계정 생성
+##
+##   mysql -h <RDS_ENDPOINT> -u admin -p
+##
+##   CREATE USER 'datadog'@'%' IDENTIFIED BY '<DATADOG_DB_PASSWORD>';
+##   ALTER USER 'datadog'@'%' WITH MAX_USER_CONNECTIONS 5;
+##   GRANT REPLICATION CLIENT ON *.* TO 'datadog'@'%';
+##   GRANT PROCESS ON *.* TO 'datadog'@'%';
+##   GRANT SELECT ON performance_schema.* TO 'datadog'@'%';
+##
+##   -- DBM（クエリ単位の性能）まで見る場合は追加 / DBM까지 볼 경우 추가
+##   CREATE SCHEMA IF NOT EXISTS datadog;
+##   GRANT EXECUTE ON datadog.* TO 'datadog'@'%';
+##   GRANT CREATE TEMPORARY TABLES ON datadog.* TO 'datadog'@'%';
+##   GRANT SELECT ON mysql.user TO 'datadog'@'%';
+##   FLUSH PRIVILEGES;
+##
+## 事前準備 2) RDS パラメータグループ（DBM を使う場合のみ）
+## 사전 준비 2) RDS 파라미터 그룹 (DBM 사용 시에만)
+##   既定のパラメータグループは編集できないので新規作成して適用する。
+##     performance_schema = 1
+##     max_digest_length = 4096
+##     performance_schema_max_digest_length = 4096
+##   適用後にインスタンスの再起動が必要。
+##   これをしないまま dbm: true にすると performance_schema 関連のエラーが出る。
+## ─────────────────────────────────────────────────────────────────
+
+init_config:
+
+instances:
+  - host: <RDS_ENDPOINT>          # 例: hyojin-db.xxxxxxxx.ap-northeast-1.rds.amazonaws.com
+    port: 3306
+    username: datadog
+    password: "<DATADOG_DB_PASSWORD>"
+
+    # Database Monitoring — クエリ別の実行時間・実行計画。
+    # 事前準備 2) を済ませていない場合は false のままにする。
+    # 사전 준비 2)를 안 했으면 false 로 둔다.
+    dbm: false
+
+    # RDS インスタンスとして認識させ、APM/DBM の相関に使う
+    aws:
+      instance_endpoint: <RDS_ENDPOINT>
+
+    tags:
+      - service:name-compat-db
+      - project:name-compat
+      - env:prod
+      - dbinstanceidentifier:hyojin-db
+
+    options:
+      replication: false
+      extra_status_metrics: true       # Connections, Threads, Slow_queries など
+      extra_innodb_metrics: true
+      schema_size_metrics: true
+      extra_performance_metrics: true  # クエリ統計 (performance_schema が必要)
+      disable_innodb_metrics: false

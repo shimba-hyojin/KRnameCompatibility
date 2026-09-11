@@ -26,6 +26,9 @@ html = re.sub(
     html,
 )
 
+# RUM 은 preview(로컬 확인용)에서는 넣지 않는다 — 실사용 데이터가 아니므로
+html = re.sub(r'<script src="/js/rum\.js[^"]*"></script>\s*', "", html)
+
 # mock-api 는 app.js 보다 먼저 로드해야 fetch를 가로챌 수 있다
 html = re.sub(
     r'<script src="/js/kana2hangul\.js[^"]*"></script>\s*<script src="/js/app\.js[^"]*"></script>',

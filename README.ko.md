@@ -84,7 +84,7 @@ name-compat/
 ├── db/init.sql                  스키마
 ├── datadog/
 │   ├── conf.d/nginx.d/conf.yaml
-│   ├── conf.d/mysql.d/conf.yaml
+│   ├── conf.d/mysql.d/conf.yaml.example  ← 복제해서 conf.yaml 생성 (git 제외)
 │   ├── conf.d/http_check.d/conf.yaml
 │   └── monitors.md              모니터/대시보드/트레이스 설계
 └── tools/
@@ -303,10 +303,31 @@ open docs/index.html              # 로컬 확인
 
 공개 절차는 [`GITHUB_PAGES.md`](GITHUB_PAGES.ko.md)를 본다.
 
-> **주의**: `.env` 에 Datadog API 키와 RDS 비밀번호가 있다. `.gitignore` 에 등록되어 있지만
+> **주의**: 비밀값이 들어가는 파일은 `.gitignore` 에 등록되어 있다.
 > push 전에 `git status --short` 로 반드시 확인한다.
+>
+> | 파일 | 내용 | git |
+> |---|---|---|
+> | `.env` | Datadog API 키, RDS 비밀번호 | 제외 |
+> | `datadog/conf.d/mysql.d/conf.yaml` | datadog DB 계정 비밀번호 | 제외 |
+> | `datadog/conf.d/mysql.d/conf.yaml.example` | 플레이스홀더만 | 관리 |
+> | `frontend/js/rum.js` 의 `clientToken` | 공개 전제 값 (`pub` 접두사) | 관리해도 됨 |
+
+## CloudWatch와 비교
+
+같은 EC2를 CloudWatch Agent와 Datadog Agent 양쪽으로 관측해서 차이를 확인하는 구성도 넣어뒀다.
+
+```bash
+# cloudwatch/amazon-cloudwatch-agent.json 을 EC2에 두고 기동
+sudo /opt/aws/amazon-cloudwatch-agent/bin/amazon-cloudwatch-agent-ctl \
+  -a fetch-config -m ec2 -s -c file:/opt/aws/amazon-cloudwatch-agent/etc/amazon-cloudwatch-agent.json
+```
+
+CloudWatch는 기본적으로 **EC2 메모리를 주지 않는다.** Agent를 깔는 가장 큰 이유가 여기 있다.
+절차와 비교 포인트는 [`CLOUDWATCH.ko.md`](CLOUDWATCH.ko.md)를 본다.
 
 ## 다음 단계
 
-배포는 [`DEPLOY.md`](DEPLOY.ko.md), 모니터링·트레이스 설계는
-[`datadog/monitors.md`](datadog/monitors.ko.md)를 본다.
+배포는 [`DEPLOY.ko.md`](DEPLOY.ko.md), 모니터링·트레이스 설계는
+[`datadog/monitors.ko.md`](datadog/monitors.ko.md),
+CloudWatch 비교는 [`CLOUDWATCH.ko.md`](CLOUDWATCH.ko.md)를 본다.

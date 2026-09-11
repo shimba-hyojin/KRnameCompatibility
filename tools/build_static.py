@@ -32,6 +32,16 @@ html = re.sub(
 # 주석으로 남은 캐시 안내는 정적판에서 불필요
 html = html.replace("<!-- ?v= 는 캐시 무효화용. 프론트엔드를 고칠 때마다 숫자를 올린다. -->\n", "")
 
+# RUM 은 그대로 인라인한다 (GitHub Pages 에서도 브라우저가 직접 Datadog へ送る).
+# env 를 pages 로 上書きして EC2 版と区別できるようにする。
+rum = (ROOT / "frontend" / "js" / "rum.js").read_text(encoding="utf-8")
+rum = rum.replace("env: 'prod'", "env: 'pages'")
+html = re.sub(
+    r'<script src="/js/rum\.js[^"]*"></script>',
+    lambda _: "<script>\n" + rum + "\n</script>",
+    html,
+)
+
 # JS 인라인 — static-api 가 app.js 보다 먼저 와야 fetch 를 가로챈다
 html = re.sub(
     r'<script src="/js/kana2hangul\.js[^"]*"></script>\s*<script src="/js/app\.js[^"]*"></script>',

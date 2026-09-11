@@ -1,0 +1,96 @@
+{
+  "//": [
+    "CloudWatch Agent 설정 / CloudWatch Agent の設定",
+    "",
+    "배치 위치 / 配置場所:",
+    "  /opt/aws/amazon-cloudwatch-agent/etc/amazon-cloudwatch-agent.json",
+    "",
+    "적용 / 適用:",
+    "  sudo /opt/aws/amazon-cloudwatch-agent/bin/amazon-cloudwatch-agent-ctl \\",
+    "    -a fetch-config -m ec2 -s \\",
+    "    -c file:/opt/aws/amazon-cloudwatch-agent/etc/amazon-cloudwatch-agent.json",
+    "",
+    "비용 주의 / コスト注意:",
+    "  여기서 수집하는 것은 전부 커스텀 메트릭이며 지표 개수당 과금된다.",
+    "  메모리/스왑/디스크 3종만 담아 최소로 유지했다. 항목을 늘릴 때는 요금을 확인한다.",
+    "  ここで収集するものはすべてカスタムメトリクスで、指標の本数ごとに課金される。"
+  ],
+
+  "agent": {
+    "metrics_collection_interval": 60,
+    "run_as_user": "cwagent",
+    "region": "ap-northeast-1"
+  },
+
+  "metrics": {
+    "namespace": "CWAgent",
+
+    "//append_dimensions": "EC2 인스턴스 정보를 자동으로 태그처럼 붙인다",
+    "append_dimensions": {
+      "InstanceId": "${aws:InstanceId}",
+      "InstanceType": "${aws:InstanceType}"
+    },
+
+    "//aggregation_dimensions": "InstanceId 단위로 집계한 그래프를 함께 만든다",
+    "aggregation_dimensions": [["InstanceId"], []],
+
+    "metrics_collected": {
+      "//mem": "CloudWatch가 기본으로 주지 않는 것 — 이것이 Agent를 깔는 가장 큰 이유",
+      "mem": {
+        "measurement": [
+          { "name": "mem_used_percent", "rename": "MemoryUtilization", "unit": "Percent" }
+        ],
+        "metrics_collection_interval": 60
+      },
+
+      "//swap": "빌드가 멈추던 원인을 추적하기 위해. 스왑을 쓰기 시작하면 메모리가 부족한 것",
+      "swap": {
+        "measurement": [
+          { "name": "swap_used_percent", "rename": "SwapUtilization", "unit": "Percent" }
+        ],
+        "metrics_collection_interval": 60
+      },
+
+      "//disk": "루트 볼륨만. Docker 이미지가 쌓이면 여기가 찬다",
+      "disk": {
+        "measurement": [
+          { "name": "used_percent", "rename": "DiskUtilization", "unit": "Percent" }
+        ],
+        "resources": ["/"],
+        "ignore_file_system_types": ["sysfs", "devtmpfs", "tmpfs", "overlay", "squashfs"],
+        "metrics_collection_interval": 60
+      }
+    }
+  },
+
+  "//logs": [
+    "로그 수집은 선택 사항이다. 아래 주석을 풀면 nginx 로그가 CloudWatch Logs로도 간다.",
+    "Docker 의 awslogs 드라이버를 쓰지 않고 파일을 읽는 방식이므로,",
+    "Datadog 의 컨테이너 로그 수집과 충돌하지 않는다 (둘 다 동시에 유지된다).",
+    "",
+    "경로 확인 / パス確認:",
+    "  docker volume inspect name-compat_nginx-logs --format '{{.Mountpoint}}'",
+    "그 경로를 아래 file_path 에 넣는다.",
+    "",
+    "\"logs\": {",
+    "  \"logs_collected\": {",
+    "    \"files\": {",
+    "      \"collect_list\": [",
+    "        {",
+    "          \"file_path\": \"/var/lib/docker/volumes/name-compat_nginx-logs/_data/access.log\",",
+    "          \"log_group_name\": \"/name-compat/nginx/access\",",
+    "          \"log_stream_name\": \"{instance_id}\",",
+    "          \"retention_in_days\": 7",
+    "        },",
+    "        {",
+    "          \"file_path\": \"/var/lib/docker/volumes/name-compat_nginx-logs/_data/error.log\",",
+    "          \"log_group_name\": \"/name-compat/nginx/error\",",
+    "          \"log_stream_name\": \"{instance_id}\",",
+    "          \"retention_in_days\": 7",
+    "        }",
+    "      ]",
+    "    }",
+    "  }",
+    "}"
+  ]
+}

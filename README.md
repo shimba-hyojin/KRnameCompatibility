@@ -92,7 +92,7 @@ KRnameCompatibility/
 ├── db/init.sql                       スキーマ
 ├── datadog/
 │   ├── conf.d/nginx.d/conf.yaml
-│   ├── conf.d/mysql.d/conf.yaml
+│   ├── conf.d/mysql.d/conf.yaml.example  ← 複製して conf.yaml を作る（git 対象外）
 │   ├── conf.d/http_check.d/conf.yaml
 │   └── monitors.md / monitors.ko.md  モニター・ダッシュボード・トレース設計
 ├── docs/index.html                   GitHub Pages 用の静的版（自動生成）
@@ -315,10 +315,31 @@ open docs/index.html              # ローカル確認
 
 公開手順は [`GITHUB_PAGES.md`](GITHUB_PAGES.md) を参照してください。
 
-> **注意**: `.env` に Datadog API キーと RDS のパスワードが入っています。`.gitignore` に登録済みですが、
+> **注意**: 秘密情報を含むファイルは `.gitignore` に登録済みです。
 > push の前に `git status --short` で必ず確認してください。
+>
+> | ファイル | 中身 | git |
+> |---|---|---|
+> | `.env` | Datadog API キー、RDS パスワード | 対象外 |
+> | `datadog/conf.d/mysql.d/conf.yaml` | datadog DB ユーザーのパスワード | 対象外 |
+> | `datadog/conf.d/mysql.d/conf.yaml.example` | プレースホルダーのみ | 管理する |
+> | `frontend/js/rum.js` の `clientToken` | 公開前提の値（`pub` 接頭辞） | 管理してよい |
+
+## CloudWatch との比較
+
+同じ EC2 を CloudWatch Agent と Datadog Agent の両方で観測し、違いを確かめる構成も用意しています。
+
+```bash
+# cloudwatch/amazon-cloudwatch-agent.json を EC2 に置いて起動
+sudo /opt/aws/amazon-cloudwatch-agent/bin/amazon-cloudwatch-agent-ctl \
+  -a fetch-config -m ec2 -s -c file:/opt/aws/amazon-cloudwatch-agent/etc/amazon-cloudwatch-agent.json
+```
+
+CloudWatch は標準では **EC2 のメモリを提供しません**。Agent を入れる最大の理由がそこにあります。
+手順と比較のポイントは [`CLOUDWATCH.md`](CLOUDWATCH.md) を参照してください。
 
 ## 次のステップ
 
 デプロイは [`DEPLOY.md`](DEPLOY.md)、モニタリング・トレース設計は
-[`datadog/monitors.md`](datadog/monitors.md) を参照してください。
+[`datadog/monitors.md`](datadog/monitors.md)、
+CloudWatch との比較は [`CLOUDWATCH.md`](CLOUDWATCH.md) を参照してください。

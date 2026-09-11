@@ -1,8 +1,27 @@
+# ---------------------------------------------------------------- 秘密情報 / 비밀값
+# 実際の環境変数（Datadog API キー・RDS パスワード）
 .env
+
+# SSH 秘密鍵
 *.pem
+
+# Datadog の MySQL 連携設定 — DB パスワードを含む。
+# テンプレートの conf.yaml.example のみを git で管理する。
+# 使うときは:  cp conf.yaml.example conf.yaml && nano conf.yaml
+datadog/conf.d/mysql.d/conf.yaml
+
+# 各自の環境に依存する設定を置く場合の受け皿
+*.local.yaml
+*.local.json
+*.secret
+
+# ---------------------------------------------------------------- 生成物 / 생성물
 __pycache__/
 *.pyc
 .pytest_cache/
 .venv/
 venv/
+
+# ---------------------------------------------------------------- OS
 .DS_Store
+Thumbs.db
