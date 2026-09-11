@@ -3,8 +3,7 @@
 # AWS デプロイガイド
 
 EC2 + Nginx + Docker + RDS + Datadog。上から順に進めれば完了します。
-リージョンは `ap-northeast-1`（東京）を前提。想定コストは t3.micro + db.t4g.micro で月 20〜30 USD
-（無料利用枠が適用されればほぼ 0）。
+リージョンは `ap-northeast-1`（東京）
 
 **実際に構築したリソース**
 

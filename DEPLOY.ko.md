@@ -3,8 +3,7 @@
 # AWS 배포 가이드
 
 EC2 + Nginx + Docker + RDS + Datadog. 위에서부터 순서대로 따라가면 된다.
-리전은 `ap-northeast-1`(도쿄) 기준. 예상 비용은 t3.micro + db.t4g.micro 조합으로 월 20~30 USD
-(프리티어 적용 시 거의 0).
+리전은 `ap-northeast-1`(도쿄)
 
 **실제 구축된 리소스**
 
