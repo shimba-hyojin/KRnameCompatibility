@@ -1,6 +1,9 @@
 Flask==3.0.3
 gunicorn==22.0.0
 PyMySQL==1.1.1
+# MySQL 8 の既定認証 caching_sha2_password / sha256_password に必要。
+# これが無いと db.ping_failed: 'cryptography' package is required で接続できない。
+cryptography>=42.0.0
 requests==2.32.3
 # Datadog APM (트레이싱). 사용하지 않으려면 DD_TRACE_ENABLED=false
 ddtrace==2.10.5

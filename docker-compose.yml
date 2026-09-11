@@ -113,6 +113,10 @@ services:
       # APM
       DD_APM_ENABLED: "true"
       DD_APM_NON_LOCAL_TRAFFIC: "true"
+      # Remote Configuration 무효화 — Agent 설정이 이 파일 하나로만 결정되게 한다.
+      # Datadog UI에서 원격으로 설정을 바꾸는 기능을 끄므로, 연습 환경에서
+      # "내가 안 바꿨는데 동작이 달라졌다"는 혼란이 없다.
+      DD_REMOTE_CONFIGURATION_ENABLED: "false"
       # 헬스체크 트레이스가 APM 화면을 채워서 거슬리면 아래 주석을 해제한다.
       # (로그와 http_check 메트릭에는 그대로 남으므로 다운 감지는 계속 동작)
       # DD_APM_IGNORE_RESOURCES: "GET /api/health,GET /api/meta"
